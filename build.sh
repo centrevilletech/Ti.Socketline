@@ -22,8 +22,12 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$SRC/dist"
 for platform in "${PLATFORMS[@]}"; do
-	rsync -a --exclude build --exclude dist --exclude libs "$SRC/$platform/" "$TMP/$platform/"
+	rsync -a --exclude build --exclude dist --exclude libs --exclude metadata.json "$SRC/$platform/" "$TMP/$platform/"
+	cp "$SRC/LICENSE" "$TMP/$platform/LICENSE"   # packaged into the zip
 	(cd "$TMP/$platform" && ti build -p "$platform" --build-only)
+	if [ -x "$TMP/$platform/build/gradlew" ]; then
+		(cd "$TMP/$platform/build" && ./gradlew --stop >/dev/null 2>&1) || true   # only the daemon this build started
+	fi
 	cp "$TMP/$platform"/dist/*.zip "$SRC/dist/"
 done
 ls "$SRC"/dist/*.zip
