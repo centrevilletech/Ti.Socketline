@@ -1,5 +1,5 @@
 {
- "comment": "Shared by test/android (JVM) and test/ios (clang): the state machine (SocketCore / TiSocketlineCore) and argument validation.",
+ "comment": "Shared by test/android (JVM) and test/ios (clang): the state machine (SocketCore / TiSocketlineCore) and argument validation. atsCleartext is iOS only (Android uses NetworkSecurityPolicy).",
  "closeArguments": [
   {
    "name": "no arguments",
@@ -188,22 +188,15 @@
    "valid": false
   },
   {
-   "name": "timeouts",
+   "name": "connectTimeout",
    "url": "wss://example.com/socket",
    "connectTimeout": 2500,
-   "closeTimeout": 1000,
    "valid": true
   },
   {
    "name": "zero connectTimeout",
    "url": "wss://example.com/socket",
    "connectTimeout": 0,
-   "valid": false
-  },
-  {
-   "name": "negative closeTimeout",
-   "url": "wss://example.com/socket",
-   "closeTimeout": -5,
    "valid": false
   },
   {
@@ -715,7 +708,9 @@
      "connect"
     ],
     [
-     "requestClose"
+     "requestClose",
+     1000,
+     ""
     ],
     [
      "opened",
@@ -740,7 +735,9 @@
    "name": "close() before connect(): 1006, connect() then does nothing",
    "steps": [
     [
-     "requestClose"
+     "requestClose",
+     1000,
+     ""
     ],
     [
      "connect"
@@ -749,168 +746,6 @@
    "actions": [],
    "events": [
     "close:1006::false"
-   ],
-   "state": 3
-  },
-  {
-   "name": "client close, server echoes: clean with the server's code",
-   "steps": [
-    [
-     "connect"
-    ],
-    [
-     "opened",
-     ""
-    ],
-    [
-     "requestClose"
-    ],
-    [
-     "closeFrame",
-     1000,
-     "bye"
-    ],
-    [
-     "transportClosed",
-     null
-    ]
-   ],
-   "actions": [
-    "CONNECT",
-    "SEND_CLOSE"
-   ],
-   "events": [
-    "open:",
-    "close:1000:bye:true"
-   ],
-   "state": 3
-  },
-  {
-   "name": "client close 4000, server echoes 4000",
-   "steps": [
-    [
-     "connect"
-    ],
-    [
-     "opened",
-     ""
-    ],
-    [
-     "requestClose"
-    ],
-    [
-     "closeFrame",
-     4000,
-     "later"
-    ],
-    [
-     "transportClosed",
-     null
-    ]
-   ],
-   "actions": [
-    "CONNECT",
-    "SEND_CLOSE"
-   ],
-   "events": [
-    "open:",
-    "close:4000:later:true"
-   ],
-   "state": 3
-  },
-  {
-   "name": "client close, server never answers: close timer gives 1006, no error",
-   "steps": [
-    [
-     "connect"
-    ],
-    [
-     "opened",
-     ""
-    ],
-    [
-     "requestClose"
-    ],
-    [
-     "closeTimedOut"
-    ],
-    [
-     "transportClosed",
-     "CONNECTION_LOST"
-    ]
-   ],
-   "actions": [
-    "CONNECT",
-    "SEND_CLOSE",
-    "TEARDOWN"
-   ],
-   "events": [
-    "open:",
-    "close:1006::false"
-   ],
-   "state": 3
-  },
-  {
-   "name": "client close, server drops: 1006, no error",
-   "steps": [
-    [
-     "connect"
-    ],
-    [
-     "opened",
-     ""
-    ],
-    [
-     "requestClose"
-    ],
-    [
-     "transportClosed",
-     "CONNECTION_LOST"
-    ]
-   ],
-   "actions": [
-    "CONNECT",
-    "SEND_CLOSE"
-   ],
-   "events": [
-    "open:",
-    "close:1006::false"
-   ],
-   "state": 3
-  },
-  {
-   "name": "close timer after the handshake completed does nothing",
-   "steps": [
-    [
-     "connect"
-    ],
-    [
-     "opened",
-     ""
-    ],
-    [
-     "requestClose"
-    ],
-    [
-     "closeFrame",
-     1000,
-     ""
-    ],
-    [
-     "closeTimedOut"
-    ],
-    [
-     "transportClosed",
-     null
-    ]
-   ],
-   "actions": [
-    "CONNECT",
-    "SEND_CLOSE"
-   ],
-   "events": [
-    "open:",
-    "close:1000::true"
    ],
    "state": 3
   },
@@ -925,18 +760,17 @@
      ""
     ],
     [
-     "requestClose"
+     "requestClose",
+     1000,
+     ""
     ],
     [
-     "requestClose"
+     "requestClose",
+     4000,
+     "again"
     ],
     [
      "connect"
-    ],
-    [
-     "closeFrame",
-     1000,
-     ""
     ],
     [
      "transportClosed",
@@ -972,20 +806,13 @@
      "a"
     ],
     [
-     "requestClose"
-    ],
-    [
-     "message",
-     "b"
-    ],
-    [
-     "closeFrame",
+     "requestClose",
      1000,
      ""
     ],
     [
      "message",
-     "c"
+     "b"
     ],
     [
      "transportClosed",
@@ -1004,7 +831,6 @@
     "open:chat",
     "message:a",
     "message:b",
-    "message:c",
     "close:1000::true"
    ],
    "state": 3
@@ -1161,7 +987,9 @@
      true
     ],
     [
-     "requestClose"
+     "requestClose",
+     1000,
+     ""
     ],
     [
      "canSend",
@@ -1176,6 +1004,331 @@
     "open:"
    ],
    "state": 2
+  },
+  {
+   "name": "close(): the app's code and reason, clean, without waiting for the server",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose",
+     4000,
+     "later"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:4000:later:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "close(): a server close frame after it does not change the result",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose",
+     4000,
+     "later"
+    ],
+    [
+     "closeFrame",
+     4999,
+     "other"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:4000:later:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "close(): a transport error after it is not reported",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose",
+     1000,
+     "bye"
+    ],
+    [
+     "transportClosed",
+     "CONNECTION_LOST"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:1000:bye:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "the server's close frame first, then close(): the server's code",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     4001,
+     "expired"
+    ],
+    [
+     "requestClose",
+     1000,
+     ""
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "close:4001:expired:true"
+   ],
+   "state": 3
+  }
+ ],
+ "atsCleartext": [
+  {
+   "name": "no ATS dictionary",
+   "ats": null,
+   "host": "example.com",
+   "permitted": false
+  },
+  {
+   "name": "empty ATS dictionary",
+   "ats": {},
+   "host": "example.com",
+   "permitted": false
+  },
+  {
+   "name": "arbitrary loads",
+   "ats": {
+    "NSAllowsArbitraryLoads": true
+   },
+   "host": "example.com",
+   "permitted": true
+  },
+  {
+   "name": "arbitrary loads ignored when local networking is present",
+   "ats": {
+    "NSAllowsArbitraryLoads": true,
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "example.com",
+   "permitted": false
+  },
+  {
+   "name": "arbitrary loads ignored when web content is present",
+   "ats": {
+    "NSAllowsArbitraryLoads": true,
+    "NSAllowsArbitraryLoadsInWebContent": true
+   },
+   "host": "example.com",
+   "permitted": false
+  },
+  {
+   "name": "local networking: 127.0.0.1",
+   "ats": {
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "127.0.0.1",
+   "permitted": true
+  },
+  {
+   "name": "local networking: IPv6 literal",
+   "ats": {
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "::1",
+   "permitted": true
+  },
+  {
+   "name": "local networking: localhost",
+   "ats": {
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "localhost",
+   "permitted": true
+  },
+  {
+   "name": "local networking: .local",
+   "ats": {
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "printer.local",
+   "permitted": true
+  },
+  {
+   "name": "local networking: unqualified name",
+   "ats": {
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "devbox",
+   "permitted": true
+  },
+  {
+   "name": "local networking does not allow a public host",
+   "ats": {
+    "NSAllowsLocalNetworking": true
+   },
+   "host": "example.com",
+   "permitted": false
+  },
+  {
+   "name": "no local networking: 127.0.0.1 refused",
+   "ats": {},
+   "host": "127.0.0.1",
+   "permitted": false
+  },
+  {
+   "name": "exception domain allows insecure loads",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSExceptionAllowsInsecureHTTPLoads": true
+     }
+    }
+   },
+   "host": "example.com",
+   "permitted": true
+  },
+  {
+   "name": "exception domain, other host",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSExceptionAllowsInsecureHTTPLoads": true
+     }
+    }
+   },
+   "host": "other.com",
+   "permitted": false
+  },
+  {
+   "name": "exception domain without subdomains",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSExceptionAllowsInsecureHTTPLoads": true
+     }
+    }
+   },
+   "host": "api.example.com",
+   "permitted": false
+  },
+  {
+   "name": "exception domain with subdomains",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSIncludesSubdomains": true,
+      "NSExceptionAllowsInsecureHTTPLoads": true
+     }
+    }
+   },
+   "host": "api.example.com",
+   "permitted": true
+  },
+  {
+   "name": "temporary exception key",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
+     }
+    }
+   },
+   "host": "example.com",
+   "permitted": true
+  },
+  {
+   "name": "exception domain forbids despite arbitrary loads",
+   "ats": {
+    "NSAllowsArbitraryLoads": true,
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSExceptionAllowsInsecureHTTPLoads": false
+     }
+    }
+   },
+   "host": "example.com",
+   "permitted": false
+  },
+  {
+   "name": "most specific exception wins",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSIncludesSubdomains": true,
+      "NSExceptionAllowsInsecureHTTPLoads": true
+     },
+     "api.example.com": {
+      "NSExceptionAllowsInsecureHTTPLoads": false
+     }
+    }
+   },
+   "host": "api.example.com",
+   "permitted": false
+  },
+  {
+   "name": "host case does not matter",
+   "ats": {
+    "NSExceptionDomains": {
+     "example.com": {
+      "NSExceptionAllowsInsecureHTTPLoads": true
+     }
+    }
+   },
+   "host": "EXAMPLE.com",
+   "permitted": true
   }
  ]
 }

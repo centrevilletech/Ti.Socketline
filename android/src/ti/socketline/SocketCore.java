@@ -33,9 +33,9 @@ final class SocketCore
 	static final int ACTION_NONE = 0;
 	/** Start connecting. */
 	static final int ACTION_CONNECT = 1;
-	/** Send a close frame with the requested code and reason, and start the close timer. */
+	/** Send a close frame with the requested code and reason and close the connection. */
 	static final int ACTION_SEND_CLOSE = 2;
-	/** Tear the transport down now (abort a connect, give up on a closing handshake, release). */
+	/** Tear the transport down now (abort a connect, release). */
 	static final int ACTION_TEARDOWN = 3;
 
 	static final String ERROR_INVALID_OPTIONS = "INVALID_OPTIONS";
@@ -114,6 +114,8 @@ final class SocketCore
 	private boolean closeFired;
 	private int receivedCode;
 	private String receivedReason = "";
+	private int requestedCode = DEFAULT_CLOSE_CODE;
+	private String requestedReason = "";
 
 	synchronized int getState()
 	{
@@ -165,13 +167,19 @@ final class SocketCore
 						  list(Event.error(ERROR_BINARY_FRAME, "A binary frame was received and dropped: only text frames are supported")));
 	}
 
-	/** close(code, reason), after validateCloseArguments() accepted them. */
-	synchronized Result requestClose()
+	/**
+	 * close(code, reason), after validateCloseArguments() accepted them. On an open socket the close frame
+	 * is sent and the connection closed without waiting for the server's answer (neither platform's
+	 * WebSocket stack reads it), so "close" reports this code and reason, clean.
+	 */
+	synchronized Result requestClose(int code, String reason)
 	{
 		if (closeFired || state == CLOSING || state == CLOSED) {
 			return NOTHING;
 		}
 		closeRequested = true;
+		requestedCode = code;
+		requestedReason = reason == null ? "" : reason;
 		if (state == CONNECTING) {
 			// Never opened: nothing to hand-shake with. Stop connecting and report an abnormal closure.
 			return finish(started ? ACTION_TEARDOWN : ACTION_NONE, null, null);
@@ -180,10 +188,10 @@ final class SocketCore
 		return new Result(ACTION_SEND_CLOSE, Collections.<Event>emptyList());
 	}
 
-	/** The server's close frame arrived (code 1005 when it carried none). */
+	/** The server's close frame arrived (code 1005 when it carried none) before the app asked to close. */
 	synchronized void closeFrameReceived(int code, String reason)
 	{
-		if (!opened || closeFired || closeFrameReceived) {
+		if (!opened || closeFired || closeFrameReceived || closeRequested) {
 			return;
 		}
 		closeFrameReceived = true;
@@ -206,15 +214,6 @@ final class SocketCore
 		return finish(ACTION_TEARDOWN, closeRequested ? null : errorCode, description);
 	}
 
-	/** The close timer expired before the closing handshake completed. */
-	synchronized Result closeTimedOut()
-	{
-		if (closeFired || state != CLOSING || closeFrameReceived) {
-			return NOTHING;
-		}
-		return finish(ACTION_TEARDOWN, null, null);
-	}
-
 	/** The transport is gone. errorCode is null when it closed without an error. */
 	synchronized Result transportClosed(String errorCode, String description)
 	{
@@ -232,8 +231,14 @@ final class SocketCore
 			boolean clean = code != ABNORMAL_CLOSURE;
 			return new Result(ACTION_NONE, list(Event.close(code, clean ? receivedReason : "", clean)));
 		}
-		// Lost without a closing handshake. When the app asked to close, it gets no error event.
-		return finish(ACTION_NONE, closeRequested ? null : ERROR_CONNECTION_LOST, description);
+		if (closeRequested) {
+			// The app's close frame was sent on the open connection.
+			closeFired = true;
+			state = CLOSED;
+			return new Result(ACTION_NONE, list(Event.close(requestedCode, requestedReason, true)));
+		}
+		// Lost without a close frame.
+		return finish(ACTION_NONE, ERROR_CONNECTION_LOST, description);
 	}
 
 	/** The proxy is being released: stop everything, fire nothing. */
@@ -319,7 +324,7 @@ final class SocketCore
 	 * Validates the createSocket() options read at connect(). Returns null when valid, otherwise a
 	 * description for the INVALID_OPTIONS error.
 	 */
-	static String validateOptions(Object url, Object headers, Object protocols, Object connectTimeout, Object closeTimeout)
+	static String validateOptions(Object url, Object headers, Object protocols, Object connectTimeout)
 	{
 		if (!(url instanceof String)) {
 			return "url must be a string starting with ws:// or wss://";
@@ -341,9 +346,6 @@ final class SocketCore
 			return "url must not have a fragment";
 		}
 		String message = validateTimeout("connectTimeout", connectTimeout);
-		if (message == null) {
-			message = validateTimeout("closeTimeout", closeTimeout);
-		}
 		if (message == null) {
 			message = validateHeaders(headers);
 		}

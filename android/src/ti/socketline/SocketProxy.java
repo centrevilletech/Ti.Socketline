@@ -70,7 +70,6 @@ public class SocketProxy extends KrollProxy
 {
 	private static final String TAG = "TiSocketline";
 	private static final int DEFAULT_CONNECT_TIMEOUT = 15000;
-	private static final int DEFAULT_CLOSE_TIMEOUT = 5000;
 	private static final ScheduledExecutorService TIMERS = Executors.newSingleThreadScheduledExecutor(runnable -> {
 		Thread thread = new Thread(runnable, "Ti.Socketline timers");
 		thread.setDaemon(true);
@@ -82,14 +81,11 @@ public class SocketProxy extends KrollProxy
 	private volatile Socket transport;
 	private volatile WebSocketClient client;
 	private volatile ScheduledFuture<?> connectTimer;
-	private volatile ScheduledFuture<?> closeTimer;
 	private volatile String protocol = "";
 	private volatile Exception lastError;
 	private volatile FrameWatchingSocket watched;
-	private volatile boolean closeFrameSent;
 	private List<String> offeredProtocols = Collections.emptyList();
 	private long connectDeadline;
-	private int closeTimeout = DEFAULT_CLOSE_TIMEOUT;
 
 	@Override
 	public String getApiName()
@@ -128,8 +124,7 @@ public class SocketProxy extends KrollProxy
 		Object headers = getProperty("headers");
 		Object protocols = getProperty("protocols");
 		Object connectTimeoutValue = getProperty("connectTimeout");
-		Object closeTimeoutValue = getProperty("closeTimeout");
-		String invalid = SocketCore.validateOptions(url, headers, protocols, connectTimeoutValue, closeTimeoutValue);
+		String invalid = SocketCore.validateOptions(url, headers, protocols, connectTimeoutValue);
 		if (invalid != null) {
 			step(c -> c.connectFailed(SocketCore.ERROR_INVALID_OPTIONS, invalid));
 			return;
@@ -146,7 +141,6 @@ public class SocketProxy extends KrollProxy
 			return;
 		}
 		final int connectTimeout = connectTimeoutValue == null ? DEFAULT_CONNECT_TIMEOUT : ((Number) connectTimeoutValue).intValue();
-		closeTimeout = closeTimeoutValue == null ? DEFAULT_CLOSE_TIMEOUT : ((Number) closeTimeoutValue).intValue();
 		offeredProtocols = SocketCore.protocolList(protocols);
 		final Map<String, String> headerMap = new HashMap<>();
 		if (headers instanceof Map) {
@@ -185,9 +179,9 @@ public class SocketProxy extends KrollProxy
 	}
 
 	/**
-	 * Starts the closing handshake. code: 1000 (default) or 3000 to 4999; reason: at most 123 UTF-8 bytes.
-	 * Invalid arguments throw. "close" fires when the server answered, the close timer expired or, while
-	 * still connecting, at once with 1006.
+	 * Closes the connection. code: 1000 (default) or 3000 to 4999; reason: at most 123 UTF-8 bytes; invalid
+	 * arguments throw. On an open socket the close frame is sent and the connection closed ("close" with
+	 * this code and reason, clean); while connecting the connection is stopped ("close" 1006 at once).
 	 */
 	@Kroll.method
 	public void close(@Kroll.argument(optional = true) Object code, @Kroll.argument(optional = true) Object reason)
@@ -198,23 +192,30 @@ public class SocketProxy extends KrollProxy
 		}
 		final int closeCode = SocketCore.closeCodeOrDefault(code);
 		final String closeReason = reason == null ? "" : (String) reason;
-		SocketCore.Result result = step(SocketCore::requestClose);
+		SocketCore.Result result = step(c -> c.requestClose(closeCode, closeReason));
 		if (result.action == SocketCore.ACTION_SEND_CLOSE) {
-			closeTimer = TIMERS.schedule(() -> step(SocketCore::closeTimedOut), closeTimeout, TimeUnit.MILLISECONDS);
 			WebSocketClient c = client;
 			if (c != null) {
-				// Java-WebSocket's own close() stops reading at once and never sees the server's answer, so the
-				// close frame is sent directly; TrackingDraft completes the handshake when the answer arrives.
-				try {
-					CloseFrame frame = new CloseFrame();
-					frame.setCode(closeCode);
-					frame.setReason(closeReason);
-					closeFrameSent = true;
-					c.sendFrame(frame);
-				} catch (Exception e) {
-					Log.w(TAG, "could not send the close frame: " + e.getMessage()); // the close timer ends it
-				}
+				c.close(closeCode, closeReason); // queues the close frame after anything already sent
+				closeWhenFlushed(c, System.currentTimeMillis() + 2000);
 			}
+		}
+	}
+
+	/**
+	 * Java-WebSocket's client only finishes closing when its blocking read returns, i.e. when the server
+	 * answers or drops the connection. Like iOS, this module does not wait for the answer: once the close
+	 * frame has left the queue, the socket is closed, which ends the read loop and fires onClose.
+	 */
+	private void closeWhenFlushed(WebSocketClient c, long giveUpAt)
+	{
+		if (core.getState() == SocketCore.CLOSED) {
+			return;
+		}
+		if (c.hasBufferedData() && System.currentTimeMillis() < giveUpAt) {
+			TIMERS.schedule(() -> closeWhenFlushed(c, giveUpAt), 20, TimeUnit.MILLISECONDS);
+		} else {
+			TIMERS.schedule(() -> closeQuietly(transport), 100, TimeUnit.MILLISECONDS); // the frame's write completes
 		}
 	}
 
@@ -311,7 +312,6 @@ public class SocketProxy extends KrollProxy
 	private void teardown()
 	{
 		cancel(connectTimer);
-		cancel(closeTimer);
 		Socket socket = transport;
 		if (socket != null) {
 			closeQuietly(socket); // unblocks the connect thread and Java-WebSocket's read loop
@@ -372,7 +372,6 @@ public class SocketProxy extends KrollProxy
 		public void onClose(int code, String reason, boolean remote)
 		{
 			cancel(connectTimer);
-			cancel(closeTimer);
 			final Exception error = lastError;
 			if (core.getState() == SocketCore.CONNECTING) {
 				// TCP and TLS succeeded (they are done before Java-WebSocket starts): the upgrade failed.
@@ -388,7 +387,7 @@ public class SocketProxy extends KrollProxy
 		}
 	}
 
-	/** Draft_6455 that tells the core when the server's close frame arrives (the closing handshake). */
+	/** Draft_6455 that tells the core when the server's close frame arrives (the server closing first). */
 	private class TrackingDraft extends Draft_6455
 	{
 		TrackingDraft(List<IProtocol> protocols)
@@ -408,11 +407,6 @@ public class SocketProxy extends KrollProxy
 					reason = ((CloseFrame) frame).getMessage();
 				}
 				core.closeFrameReceived(code, reason);
-				if (closeFrameSent) {
-					// The answer to our close frame: the closing handshake is complete, disconnect.
-					webSocketImpl.closeConnection(code, reason, true);
-					return;
-				}
 			}
 			super.processFrame(webSocketImpl, frame);
 		}

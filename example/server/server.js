@@ -21,6 +21,7 @@
  *   /reject         answers HTTP 401
  *   /headers        sends the request headers as JSON, then echoes
  *   /ignore-close   echoes, but never answers the client's close frame
+ *   /echo-other     echoes, and answers the client's close frame with 4999 "other" instead of its own code
  *
  * Commands (text frames on any accepting route):
  *   close:CODE:REASON  the server closes with CODE and REASON
@@ -244,7 +245,11 @@ function startSession(socket, label, route, requestHeaders, initial) {
 					break;
 				}
 				if (!closeSent) {
-					sendClose(code, reason); // echo, completing the handshake
+					if (route === '/echo-other') {
+						sendClose(4999, 'other');
+					} else {
+						sendClose(code, reason); // echo, completing the handshake
+					}
 				}
 				socket.end();
 				break;

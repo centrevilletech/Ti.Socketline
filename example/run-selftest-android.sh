@@ -12,6 +12,8 @@ APK="${1:-$HERE/app/build/android/app/build/outputs/apk/debug/app-debug.apk}"
 APP_ID=io.example.socketline
 BASE=8765
 adb_() { if [ -n "${ADB_SERIAL:-}" ]; then adb -s "$ADB_SERIAL" "$@"; else adb "$@"; fi; }
+case "${ADB_SERIAL:-}" in *:*) adb connect "$ADB_SERIAL" >/dev/null ;; esac   # a TCP device the adb server may have forgotten
+adb_ wait-for-device
 
 node "$HERE/server/server.js" --base "$BASE" > "$HERE/server.log" 2>&1 &
 SERVER=$!

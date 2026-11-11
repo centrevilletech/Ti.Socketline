@@ -36,7 +36,7 @@ public final class VectorsTest
 
 		for (Object o : asList(v.get("options"))) {
 			Map<String, Object> c = asMap(o);
-			String message = SocketCore.validateOptions(c.get("url"), c.get("headers"), c.get("protocols"), c.get("connectTimeout"), c.get("closeTimeout"));
+			String message = SocketCore.validateOptions(c.get("url"), c.get("headers"), c.get("protocols"), c.get("connectTimeout"));
 			boolean valid = Boolean.TRUE.equals(c.get("valid"));
 			if (valid == (message == null)) {
 				pass();
@@ -73,10 +73,9 @@ public final class VectorsTest
 					case "opened": r = core.opened((String) step.get(1)); break;
 					case "message": r = core.message((String) step.get(1)); break;
 					case "binary": r = core.binaryMessage(); break;
-					case "requestClose": r = core.requestClose(); break;
+					case "requestClose": r = core.requestClose(((Number) step.get(1)).intValue(), (String) step.get(2)); break;
 					case "closeFrame": core.closeFrameReceived(((Number) step.get(1)).intValue(), (String) step.get(2)); break;
 					case "connectFailed": r = core.connectFailed((String) step.get(1), "test"); break;
-					case "closeTimedOut": r = core.closeTimedOut(); break;
 					case "transportClosed": r = core.transportClosed((String) step.get(1), "test"); break;
 					case "release": r = core.release(); break;
 					case "canSend":

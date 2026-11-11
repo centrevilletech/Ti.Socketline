@@ -254,6 +254,7 @@ const tests = [
 		check(headers['x-test'] === 'abc 123', 'x-test ' + headers['x-test']);
 		check(headers.authorization === 'Bearer t0k3n', 'authorization ' + headers.authorization);
 		check(/^p1, ?p2$/.test(headers['sec-websocket-protocol'] || ''), 'sec-websocket-protocol ' + headers['sec-websocket-protocol']);
+		Ti.API.info('[selftest] INFO upgrade request offers extensions: ' + (headers['sec-websocket-extensions'] || 'none'));
 		t.socket.close();
 		await t.closed();
 		await settled(t);
@@ -308,14 +309,20 @@ const tests = [
 		await t.closed();
 		await settled(t);
 	} ],
-	[ 'server never answers the close frame: 1006 after closeTimeout, no error', async () => {
-		const t = await openEcho({ url: WS + '/ignore-close', closeTimeout: 1000 });
+	[ 'close() does not wait for a server that never answers: your code, clean, at once', async () => {
+		const t = await openEcho({ url: WS + '/ignore-close' });
 		const asked = Date.now();
 		t.socket.close(1000, 'bye');
-		const close = await t.closed(6000);
-		expectClose(close, 1006, false, '');
-		check(close.at - asked >= 800 && close.at - asked < 3500, `closed ${close.at - asked} ms after close()`);
+		const close = await t.closed(3000);
+		expectClose(close, 1000, true, 'bye');
+		check(close.at - asked < 1000, `closed ${close.at - asked} ms after close()`);
 		check(t.count('error') === 0, 'error event');
+		await settled(t);
+	} ],
+	[ 'close(4000) reports your code even when the server answers with another', async () => {
+		const t = await openEcho({ url: WS + '/echo-other' });
+		t.socket.close(4000, 'later');
+		expectClose(await t.closed(3000), 4000, true, 'later');
 		await settled(t);
 	} ],
 	[ 'close() argument validation throws and leaves the socket open', async () => {
