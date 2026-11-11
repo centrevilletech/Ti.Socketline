@@ -5,3 +5,4 @@ android/.gradle/
 dist/
 *.log
 .DS_Store
+test/build/

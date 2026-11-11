@@ -1,0 +1,1181 @@
+{
+ "comment": "Shared by test/android (JVM) and test/ios (clang): the state machine (SocketCore / TiSocketlineCore) and argument validation.",
+ "closeArguments": [
+  {
+   "name": "no arguments",
+   "code": null,
+   "reason": null,
+   "valid": true
+  },
+  {
+   "name": "1000",
+   "code": 1000,
+   "reason": null,
+   "valid": true
+  },
+  {
+   "name": "1000 as a double",
+   "code": 1000.0,
+   "reason": null,
+   "valid": true
+  },
+  {
+   "name": "3000",
+   "code": 3000,
+   "reason": "",
+   "valid": true
+  },
+  {
+   "name": "4999",
+   "code": 4999,
+   "reason": "bye",
+   "valid": true
+  },
+  {
+   "name": "4001 with reason",
+   "code": 4001,
+   "reason": "token expired",
+   "valid": true
+  },
+  {
+   "name": "1001 is reserved for the browser",
+   "code": 1001,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "1005 may not be sent",
+   "code": 1005,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "2999",
+   "code": 2999,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "5000",
+   "code": 5000,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "0",
+   "code": 0,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "negative",
+   "code": -1,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "fraction",
+   "code": 3000.5,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  },
+  {
+   "name": "numeric string",
+   "code": "1000",
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be a number"
+  },
+  {
+   "name": "boolean",
+   "code": true,
+   "reason": null,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be a number"
+  },
+  {
+   "name": "reason 123 ASCII bytes",
+   "code": 1000,
+   "reason": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "valid": true
+  },
+  {
+   "name": "reason 124 ASCII bytes",
+   "code": 1000,
+   "reason": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "valid": false,
+   "error": "Ti.Socketline: close reason must be at most 123 bytes in UTF-8"
+  },
+  {
+   "name": "reason 61 two-byte characters (122 bytes)",
+   "code": 4000,
+   "reason": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+   "valid": true
+  },
+  {
+   "name": "reason 62 two-byte characters (124 bytes)",
+   "code": 4000,
+   "reason": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+   "valid": false,
+   "error": "Ti.Socketline: close reason must be at most 123 bytes in UTF-8"
+  },
+  {
+   "name": "reason not a string",
+   "code": 1000,
+   "reason": 42,
+   "valid": false,
+   "error": "Ti.Socketline: close reason must be a string"
+  },
+  {
+   "name": "code checked before reason",
+   "code": 1,
+   "reason": 42,
+   "valid": false,
+   "error": "Ti.Socketline: close code must be 1000 or an integer from 3000 to 4999"
+  }
+ ],
+ "options": [
+  {
+   "name": "minimal wss",
+   "url": "wss://example.com/socket",
+   "valid": true
+  },
+  {
+   "name": "minimal ws",
+   "url": "ws://127.0.0.1:8765/echo?x=1",
+   "valid": true
+  },
+  {
+   "name": "upper-case scheme",
+   "url": "WSS://example.com/",
+   "valid": true
+  },
+  {
+   "name": "missing url",
+   "url": null,
+   "valid": false
+  },
+  {
+   "name": "url not a string",
+   "url": 42,
+   "valid": false
+  },
+  {
+   "name": "http scheme",
+   "url": "https://example.com/",
+   "valid": false
+  },
+  {
+   "name": "no host",
+   "url": "ws:///path",
+   "valid": false
+  },
+  {
+   "name": "fragment",
+   "url": "wss://example.com/#x",
+   "valid": false
+  },
+  {
+   "name": "not a URL",
+   "url": "ws://exa mple.com/",
+   "valid": false
+  },
+  {
+   "name": "timeouts",
+   "url": "wss://example.com/socket",
+   "connectTimeout": 2500,
+   "closeTimeout": 1000,
+   "valid": true
+  },
+  {
+   "name": "zero connectTimeout",
+   "url": "wss://example.com/socket",
+   "connectTimeout": 0,
+   "valid": false
+  },
+  {
+   "name": "negative closeTimeout",
+   "url": "wss://example.com/socket",
+   "closeTimeout": -5,
+   "valid": false
+  },
+  {
+   "name": "connectTimeout as string",
+   "url": "wss://example.com/socket",
+   "connectTimeout": "15000",
+   "valid": false
+  },
+  {
+   "name": "headers",
+   "url": "wss://example.com/socket",
+   "headers": {
+    "Authorization": "Bearer abc",
+    "X-Count": 3
+   },
+   "valid": true
+  },
+  {
+   "name": "headers not an object",
+   "url": "wss://example.com/socket",
+   "headers": "Authorization: x",
+   "valid": false
+  },
+  {
+   "name": "header with a line break",
+   "url": "wss://example.com/socket",
+   "headers": {
+    "X-Evil": "a\r\nHost: other"
+   },
+   "valid": false
+  },
+  {
+   "name": "header name with a space",
+   "url": "wss://example.com/socket",
+   "headers": {
+    "Bad Name": "x"
+   },
+   "valid": false
+  },
+  {
+   "name": "Sec-WebSocket-Protocol header",
+   "url": "wss://example.com/socket",
+   "headers": {
+    "Sec-WebSocket-Protocol": "chat"
+   },
+   "valid": false
+  },
+  {
+   "name": "sec-websocket-key header, any case",
+   "url": "wss://example.com/socket",
+   "headers": {
+    "sec-websocket-key": "x"
+   },
+   "valid": false
+  },
+  {
+   "name": "header value an object",
+   "url": "wss://example.com/socket",
+   "headers": {
+    "X-A": {
+     "b": 1
+    }
+   },
+   "valid": false
+  },
+  {
+   "name": "one protocol as a string",
+   "url": "wss://example.com/socket",
+   "protocols": "chat.v2",
+   "valid": true
+  },
+  {
+   "name": "protocol list",
+   "url": "wss://example.com/socket",
+   "protocols": [
+    "chat.v2",
+    "chat.v1"
+   ],
+   "valid": true
+  },
+  {
+   "name": "empty protocol list",
+   "url": "wss://example.com/socket",
+   "protocols": [],
+   "valid": true
+  },
+  {
+   "name": "protocol with a space",
+   "url": "wss://example.com/socket",
+   "protocols": [
+    "chat v2"
+   ],
+   "valid": false
+  },
+  {
+   "name": "protocol with a comma",
+   "url": "wss://example.com/socket",
+   "protocols": "a,b",
+   "valid": false
+  },
+  {
+   "name": "empty protocol",
+   "url": "wss://example.com/socket",
+   "protocols": [
+    ""
+   ],
+   "valid": false
+  },
+  {
+   "name": "duplicate protocol",
+   "url": "wss://example.com/socket",
+   "protocols": [
+    "a",
+    "a"
+   ],
+   "valid": false
+  },
+  {
+   "name": "protocol not a string",
+   "url": "wss://example.com/socket",
+   "protocols": [
+    1
+   ],
+   "valid": false
+  },
+  {
+   "name": "protocols an object",
+   "url": "wss://example.com/socket",
+   "protocols": {
+    "a": 1
+   },
+   "valid": false
+  }
+ ],
+ "normalizeReceivedCode": [
+  [
+   1000,
+   1000
+  ],
+  [
+   1001,
+   1001
+  ],
+  [
+   1002,
+   1002
+  ],
+  [
+   1003,
+   1003
+  ],
+  [
+   1004,
+   1006
+  ],
+  [
+   1005,
+   1005
+  ],
+  [
+   1006,
+   1006
+  ],
+  [
+   1007,
+   1007
+  ],
+  [
+   1011,
+   1011
+  ],
+  [
+   1014,
+   1014
+  ],
+  [
+   1015,
+   1006
+  ],
+  [
+   1016,
+   1006
+  ],
+  [
+   2999,
+   1006
+  ],
+  [
+   3000,
+   3000
+  ],
+  [
+   4001,
+   4001
+  ],
+  [
+   4999,
+   4999
+  ],
+  [
+   5000,
+   1006
+  ],
+  [
+   999,
+   1006
+  ],
+  [
+   0,
+   1006
+  ],
+  [
+   -1,
+   1006
+  ]
+ ],
+ "sequences": [
+  {
+   "name": "open, server closes 1000",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     1000,
+     "done"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "close:1000:done:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "server closes 1001",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     1001,
+     "going away"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "close:1001:going away:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "server closes with an application code (4001) is clean",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     4001,
+     "token expired"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "close:4001:token expired:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "server close frame without a code: 1005, clean",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     1005,
+     ""
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "close:1005::true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "server sends an invalid code: 1006, unclean",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     1004,
+     "x"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "TCP dropped while open",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "transportClosed",
+     "CONNECTION_LOST"
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "error:CONNECTION_LOST",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "TCP ended without error while open",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "error:CONNECTION_LOST",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "connection refused",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "connectFailed",
+     "CONNECT_FAILED"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "TEARDOWN"
+   ],
+   "events": [
+    "error:CONNECT_FAILED",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "bad certificate",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "connectFailed",
+     "TLS_FAILED"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "TEARDOWN"
+   ],
+   "events": [
+    "error:TLS_FAILED",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "connect timeout, then the late transport callbacks are ignored",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "connectFailed",
+     "CONNECT_TIMEOUT"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "transportClosed",
+     "CONNECT_FAILED"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "TEARDOWN",
+    "TEARDOWN"
+   ],
+   "events": [
+    "error:CONNECT_TIMEOUT",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "transport closes before open without a classified error",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "error:CONNECT_FAILED",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "close() while connecting: 1006 at once, no error, connect torn down",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "transportClosed",
+     "CONNECT_FAILED"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "TEARDOWN",
+    "TEARDOWN"
+   ],
+   "events": [
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "close() before connect(): 1006, connect() then does nothing",
+   "steps": [
+    [
+     "requestClose"
+    ],
+    [
+     "connect"
+    ]
+   ],
+   "actions": [],
+   "events": [
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "client close, server echoes: clean with the server's code",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "closeFrame",
+     1000,
+     "bye"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:1000:bye:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "client close 4000, server echoes 4000",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "closeFrame",
+     4000,
+     "later"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:4000:later:true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "client close, server never answers: close timer gives 1006, no error",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "closeTimedOut"
+    ],
+    [
+     "transportClosed",
+     "CONNECTION_LOST"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE",
+    "TEARDOWN"
+   ],
+   "events": [
+    "open:",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "client close, server drops: 1006, no error",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "transportClosed",
+     "CONNECTION_LOST"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "close timer after the handshake completed does nothing",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "closeFrame",
+     1000,
+     ""
+    ],
+    [
+     "closeTimedOut"
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:1000::true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "second close() and connect() are no-ops",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "connect"
+    ],
+    [
+     "closeFrame",
+     1000,
+     ""
+    ],
+    [
+     "transportClosed",
+     null
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:",
+    "close:1000::true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "messages before close, during closing, not after",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "message",
+     "early"
+    ],
+    [
+     "opened",
+     "chat"
+    ],
+    [
+     "message",
+     "a"
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "message",
+     "b"
+    ],
+    [
+     "closeFrame",
+     1000,
+     ""
+    ],
+    [
+     "message",
+     "c"
+    ],
+    [
+     "transportClosed",
+     null
+    ],
+    [
+     "message",
+     "d"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:chat",
+    "message:a",
+    "message:b",
+    "message:c",
+    "close:1000::true"
+   ],
+   "state": 3
+  },
+  {
+   "name": "binary frame: error, connection stays open",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "binary"
+    ],
+    [
+     "message",
+     "after"
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "error:BINARY_FRAME",
+    "message:after"
+   ],
+   "state": 1
+  },
+  {
+   "name": "server close frame moves OPEN to CLOSING",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "closeFrame",
+     1000,
+     ""
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:"
+   ],
+   "state": 2
+  },
+  {
+   "name": "release while connecting: teardown, no events",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "release"
+    ],
+    [
+     "transportClosed",
+     "CONNECT_FAILED"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "TEARDOWN"
+   ],
+   "events": [],
+   "state": 3
+  },
+  {
+   "name": "release after close fired does nothing",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "connectFailed",
+     "CONNECT_FAILED"
+    ],
+    [
+     "release"
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "TEARDOWN"
+   ],
+   "events": [
+    "error:CONNECT_FAILED",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "failure reported after open is a lost connection",
+   "steps": [
+    [
+     "connect"
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "connectFailed",
+     "CONNECT_FAILED"
+    ]
+   ],
+   "actions": [
+    "CONNECT"
+   ],
+   "events": [
+    "open:",
+    "error:CONNECTION_LOST",
+    "close:1006::false"
+   ],
+   "state": 3
+  },
+  {
+   "name": "fresh socket is CONNECTING",
+   "steps": [],
+   "actions": [],
+   "events": [],
+   "state": 0
+  },
+  {
+   "name": "canSend only when open",
+   "steps": [
+    [
+     "canSend",
+     false
+    ],
+    [
+     "connect"
+    ],
+    [
+     "canSend",
+     false
+    ],
+    [
+     "opened",
+     ""
+    ],
+    [
+     "canSend",
+     true
+    ],
+    [
+     "requestClose"
+    ],
+    [
+     "canSend",
+     false
+    ]
+   ],
+   "actions": [
+    "CONNECT",
+    "SEND_CLOSE"
+   ],
+   "events": [
+    "open:"
+   ],
+   "state": 2
+  }
+ ]
+}
