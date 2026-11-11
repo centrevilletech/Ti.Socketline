@@ -6,3 +6,9 @@ dist/
 *.log
 .DS_Store
 test/build/
+example/server/certs/
+example/app/build/
+example/app/modules/
+example/app/platform/android/res/raw/
+example/server.log
+example/selftest-*.json

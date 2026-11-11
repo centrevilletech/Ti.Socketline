@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ti:app xmlns:ti="http://ti.tidev.io">
+	<id>io.example.socketline</id>
+	<name>Socketline</name>
+	<version>1.0.0</version>
+	<publisher>example</publisher>
+	<url></url>
+	<description>Ti.Socketline self-test</description>
+	<copyright></copyright>
+	<icon>appicon.png</icon>
+	<fullscreen>false</fullscreen>
+	<navbar-hidden>false</navbar-hidden>
+	<analytics>false</analytics>
+	<guid>3b1d6f0e-2c4a-4f8e-9d7b-5a6c8e9f0a1b</guid>
+	<property name="ti.ui.defaultunit" type="string">dp</property>
+	<ios>
+		<min-ios-ver>15.0</min-ios-ver>
+		<plist>
+			<dict>
+				<!-- ws:// to 127.0.0.1 for the self-test; every other cleartext host stays blocked by ATS -->
+				<key>NSAppTransportSecurity</key>
+				<dict>
+					<key>NSAllowsLocalNetworking</key>
+					<true/>
+				</dict>
+			</dict>
+		</plist>
+	</ios>
+	<android xmlns:android="http://schemas.android.com/apk/res/android">
+		<manifest>
+			<!-- Trusts the self-test's CA (res/raw, created by ../server/make-certs.sh); cleartext only to 127.0.0.1 -->
+			<application android:networkSecurityConfig="@xml/network_security_config"/>
+		</manifest>
+	</android>
+	<modules>
+		<module>ti.socketline</module>
+	</modules>
+	<deployment-targets>
+		<target device="android">true</target>
+		<target device="iphone">true</target>
+		<target device="ipad">false</target>
+	</deployment-targets>
+	<sdk-version>13.4.1.GA</sdk-version>
+</ti:app>
