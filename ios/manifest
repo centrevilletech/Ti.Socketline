@@ -1,0 +1,18 @@
+#
+# Ti.Socketline module manifest
+#
+version: 1.0.0
+apiversion: 2
+architectures: arm64 x86_64
+mac: false
+description: Native WebSocket client (ws and wss) for Titanium
+author: Centreville Tech LLC
+license: Apache-2.0
+copyright: Copyright (c) 2026 Centreville Tech LLC
+
+# these should not be edited
+name: socketline
+moduleid: ti.socketline
+guid: c08cd554-273c-47f5-8dad-ac1591915c01
+platform: iphone
+minsdk: 13.0.0.GA

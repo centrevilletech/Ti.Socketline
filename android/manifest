@@ -1,0 +1,19 @@
+#
+# Ti.Socketline module manifest
+#
+version: 1.0.0
+apiversion: 4
+architectures: arm64-v8a armeabi-v7a x86 x86_64
+description: Native WebSocket client (ws and wss) for Titanium
+author: Centreville Tech LLC
+license: Apache-2.0
+copyright: Copyright (c) 2026 Centreville Tech LLC
+
+# these should not be edited
+name: socketline
+moduleid: ti.socketline
+guid: c08cd554-273c-47f5-8dad-ac1591915c01
+platform: android
+classpaths:
+plugins:
+minsdk: 13.0.0.GA

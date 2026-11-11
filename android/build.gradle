@@ -1,0 +1,5 @@
+
+dependencies {
+	// Titanium itself depends on this library, so it is not packaged twice: Gradle resolves one copy.
+	implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+}
