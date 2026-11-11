@@ -5,9 +5,10 @@
 #import "TiProxy.h"
 
 /**
- * One WebSocket connection, created with createSocket({ url, headers, connectTimeout }).
+ * One WebSocket connection, created with createSocket({ url, headers, protocols, connectTimeout }).
  * Single use, like a browser WebSocket: connect() once, close() once, then create a new socket.
- * Events: open, message { data }, error { error }, close { code, reason, wasClean }.
+ * Events: open { protocol }, message { data }, error { error, code }, close { code, reason, wasClean }.
+ * The state machine is TiSocketlineCore (shared contract with Android, see test/vectors.json).
  */
 @interface TiSocketlineSocketProxy : TiProxy <NSURLSessionWebSocketDelegate>
 

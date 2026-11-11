@@ -27,10 +27,12 @@
 		24DE9E1111C5FE74003F90F6 /* TiSocketlineModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* TiSocketlineModuleAssets.h */; };
 		24DE9E1211C5FE74003F90F6 /* TiSocketlineModuleAssets.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DE9E1011C5FE74003F90F6 /* TiSocketlineModuleAssets.m */; };
 		8098025E1044989E259981C5 /* TiSocketlineSocketProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = EE2E99A6E33E507B766C4947 /* TiSocketlineSocketProxy.m */; };
+		3538A2D20AB744E892E8D692 /* TiSocketlineCore.m in Sources */ = {isa = PBXBuildFile; fileRef = 82BEB8379C1642B8AD93C915 /* TiSocketlineCore.m */; };
 		AA747D9F0F9514B9006C5449 /* TiSocketline_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* TiSocketline_Prefix.pch */; };
 		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
 		B11E042C241AC5C100EFA7DC /* TitaniumKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = B11E042B241AC5C100EFA7DC /* TitaniumKit.xcframework */; };
 		C127848F629D9C4458FBEA3E /* TiSocketlineSocketProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 5A3C59BD6701FE2F3EEBC6AF /* TiSocketlineSocketProxy.h */; };
+		C77ACB9C156747D28874512E /* TiSocketlineCore.h in Headers */ = {isa = PBXBuildFile; fileRef = AEF5172692BA44C7AB18E68F /* TiSocketlineCore.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,11 +52,13 @@
 		24DE9E0F11C5FE74003F90F6 /* TiSocketlineModuleAssets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiSocketlineModuleAssets.h; path = Classes/TiSocketlineModuleAssets.h; sourceTree = "<group>"; };
 		24DE9E1011C5FE74003F90F6 /* TiSocketlineModuleAssets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiSocketlineModuleAssets.m; path = Classes/TiSocketlineModuleAssets.m; sourceTree = "<group>"; };
 		5A3C59BD6701FE2F3EEBC6AF /* TiSocketlineSocketProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TiSocketlineSocketProxy.h; path = Classes/TiSocketlineSocketProxy.h; sourceTree = "<group>"; };
+		AEF5172692BA44C7AB18E68F /* TiSocketlineCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TiSocketlineCore.h; path = Classes/TiSocketlineCore.h; sourceTree = "<group>"; };
 		AA747D9E0F9514B9006C5449 /* TiSocketline_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSocketline_Prefix.pch; sourceTree = SOURCE_ROOT; };
 		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B11E042B241AC5C100EFA7DC /* TitaniumKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TitaniumKit.xcframework; path = "$(TITANIUM_SDK)/iphone/Frameworks/TitaniumKit.xcframework"; sourceTree = "<group>"; };
 		D2AAC07E0554694100DB518D /* libti.socketline.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libti.socketline.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE2E99A6E33E507B766C4947 /* TiSocketlineSocketProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiSocketlineSocketProxy.m; path = Classes/TiSocketlineSocketProxy.m; sourceTree = "<group>"; };
+		82BEB8379C1642B8AD93C915 /* TiSocketlineCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiSocketlineCore.m; path = Classes/TiSocketlineCore.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +111,8 @@
 				24DD6CF81134B3F500162E58 /* TiSocketlineModule.m */,
 				5A3C59BD6701FE2F3EEBC6AF /* TiSocketlineSocketProxy.h */,
 				EE2E99A6E33E507B766C4947 /* TiSocketlineSocketProxy.m */,
+				AEF5172692BA44C7AB18E68F /* TiSocketlineCore.h */,
+				82BEB8379C1642B8AD93C915 /* TiSocketlineCore.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -131,6 +137,7 @@
 				24DD6CF91134B3F500162E58 /* TiSocketlineModule.h in Headers */,
 				24DE9E1111C5FE74003F90F6 /* TiSocketlineModuleAssets.h in Headers */,
 				C127848F629D9C4458FBEA3E /* TiSocketlineSocketProxy.h in Headers */,
+				C77ACB9C156747D28874512E /* TiSocketlineCore.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,6 +212,7 @@
 				24DD6CFA1134B3F500162E58 /* TiSocketlineModule.m in Sources */,
 				24DE9E1211C5FE74003F90F6 /* TiSocketlineModuleAssets.m in Sources */,
 				8098025E1044989E259981C5 /* TiSocketlineSocketProxy.m in Sources */,
+				3538A2D20AB744E892E8D692 /* TiSocketlineCore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
