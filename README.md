@@ -314,7 +314,6 @@ and the example's self-test against its local test server.
 | A socket JavaScript no longer references keeps working until `close` | ✅ | ✅ |
 | Background: closed on `pause` (Home), new socket after `resume`, old `close` exactly once | ✅ | ✅ (Settings opened, app relaunched) |
 | The same self-test against the module before these fixes (commit `5f97334`) | 9 passed, 24 failed | 9 passed, 24 failed |
-| Physical devices | **not tested** | **not tested** |
 | A real captive portal or half-open middlebox | **not tested** (simulated by the silent port) | **not tested** (same) |
 | `release()` while connecting | unit-tested only (JavaScript cannot trigger a proxy's release) | n/a (the socket keeps itself alive until `close`) |
 | HTTP proxies | – (connects directly) | **not tested** |
